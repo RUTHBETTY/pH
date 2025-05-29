@@ -1,28 +1,96 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor de pH</title>
-    <!-- Modern Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
-    <!-- Tailwind CSS CDN for modern UI -->
+    <!-- Tailwind CSS desde CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body { font-family: 'Inter', sans-serif; }
-    </style>
-  </head>
-  <body class="bg-gradient-to-br from-blue-100 via-white to-green-100 min-h-screen flex items-center justify-center">
-    <div id="root"></div>
-    <!-- React and ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <!-- Babel for JSX support -->
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- React desde CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- App code -->
-    <script type="text/babel" src="App.jsx"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Tu componente App -->
     <script type="text/babel">
-      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        const App = () => {
+            const [phValue, setPhValue] = React.useState(7.0);
+            const [lastUpdated, setLastUpdated] = React.useState('');
+
+            React.useEffect(() => {
+                const generateRandomPh = () => {
+                    const newPh = (Math.random() * 14).toFixed(1);
+                    setPhValue(parseFloat(newPh));
+                    setLastUpdated(new Date().toLocaleTimeString());
+                };
+
+                const intervalId = setInterval(generateRandomPh, 3000);
+                return () => clearInterval(intervalId);
+            }, []);
+
+            const getPhStatus = (ph) => {
+                if (ph < 7) {
+                    return { status: 'Ácido', color: 'bg-red-500', text: 'text-red-500' };
+                } else if (ph === 7) {
+                    return { status: 'Neutro', color: 'bg-green-500', text: 'text-green-500' };
+                } else {
+                    return { status: 'Básico', color: 'bg-blue-500', text: 'text-blue-500' };
+                }
+            };
+
+            const { status, color, text } = getPhStatus(phValue);
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-green-100 flex items-center justify-center p-4 font-sans">
+                    <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-2xl w-full max-w-lg text-center border border-gray-200">
+                        <h1 className="text-5xl font-extrabold text-gray-800 mb-8 tracking-tight drop-shadow-lg">
+                            Monitor de pH
+                        </h1>
+
+                        <div className="relative w-full h-10 bg-gray-200 rounded-full overflow-hidden mb-10 shadow-inner">
+                            <div
+                                className={`absolute h-full transition-all duration-500 ease-in-out ${color}`}
+                                style={{ width: `${(phValue / 14) * 100}%` }}
+                            ></div>
+                            <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800">
+                                {phValue.toFixed(1)}
+                            </span>
+                        </div>
+
+                        <div className="mb-10">
+                            <p className="text-7xl font-extrabold text-gray-900 mb-3 drop-shadow">
+                                {phValue.toFixed(1)}
+                            </p>
+                            <p className={`text-3xl font-semibold ${text} drop-shadow-sm`}>
+                                Estado: {status}
+                            </p>
+                        </div>
+
+                        <div className="text-gray-600 text-base mb-2">
+                            <p>Última actualización: <span className="font-mono">{lastUpdated}</span></p>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-400 italic">
+                            *Valores simulados para demostración.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
-  </body>
+</body>
 </html>
