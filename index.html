@@ -1,0 +1,79 @@
+import React, { useState, useEffect } from 'react';
+
+// Main App component
+const App = () => {
+  // State to hold the current pH value
+  const [phValue, setPhValue] = useState(7.0);
+  // State to hold the last update timestamp
+  const [lastUpdated, setLastUpdated] = useState('');
+
+  // useEffect hook to simulate real-time pH updates
+  useEffect(() => {
+    // Function to generate a random pH value
+    const generateRandomPh = () => {
+      // Simulate pH values between 0 and 14
+      const newPh = (Math.random() * 14).toFixed(1);
+      setPhValue(parseFloat(newPh));
+      setLastUpdated(new Date().toLocaleTimeString());
+    };
+
+    // Set up an interval to update the pH value every 3 seconds
+    const intervalId = setInterval(generateRandomPh, 3000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array means this effect runs once on mount
+
+  // Determine the pH status (acidic, neutral, basic) and corresponding color
+  const getPhStatus = (ph) => {
+    if (ph < 7) {
+      return { status: 'Ácido', color: 'bg-red-500' }; // Red for acidic
+    } else if (ph === 7) {
+      return { status: 'Neutro', color: 'bg-green-500' }; // Green for neutral
+    } else {
+      return { status: 'Básico', color: 'bg-blue-500' }; // Blue for basic
+    }
+  };
+
+  const { status, color } = getPhStatus(phValue);
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+        <h1 className="text-4xl font-extrabold text-gray-800 mb-6">
+          Monitor de pH
+        </h1>
+
+        <div className="relative w-full h-8 bg-gray-200 rounded-full overflow-hidden mb-8">
+          {/* pH indicator bar */}
+          <div
+            className={`absolute h-full transition-all duration-500 ease-in-out ${color}`}
+            style={{ width: `${(phValue / 14) * 100}%` }} // Scale width based on pH value (0-14)
+          ></div>
+          {/* pH value text overlay */}
+          <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800">
+            {phValue.toFixed(1)}
+          </span>
+        </div>
+
+        <div className="mb-8">
+          <p className="text-6xl font-bold text-gray-900 mb-2">
+            {phValue.toFixed(1)}
+          </p>
+          <p className={`text-2xl font-semibold ${color.replace('bg-', 'text-')}`}>
+            Estado: {status}
+          </p>
+        </div>
+
+        <div className="text-gray-600 text-sm">
+          <p>Última actualización: {lastUpdated}</p>
+          <p className="mt-2 text-xs">
+            *Valores simulados para demostración.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
