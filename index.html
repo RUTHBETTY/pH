@@ -14,6 +14,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Chart.js para el gráfico -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body { 
             font-family: 'Inter', sans-serif;
@@ -27,6 +29,12 @@
 
     <!-- Tu componente App -->
     <script type="text/babel">
+        // Inicializar cliente de Supabase
+        const supabase = supabaseClient.createClient(
+            'https://htxrkekbqfkytrkbnmgp.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0eHJrZWticWZreXRya2JubWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0OTM2MTcsImV4cCI6MjA2NDA2OTYxN30.HXmUyMNtz8VU98aXnGkSNGTKlhnwX9ZUORR588DD1ak'
+        );
+
         const App = () => {
             const [phValue, setPhValue] = React.useState(7.0);
             const [lastUpdated, setLastUpdated] = React.useState('');
@@ -35,31 +43,52 @@
             const chartRef = React.useRef(null);
             const chartInstance = React.useRef(null);
 
+            // Función para cargar datos históricos de Supabase
+            const loadHistoricalData = async () => {
+                const { data, error } = await supabase
+                    .from('ph_readings')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(24);
+
+                if (data) {
+                    const formattedData = data.map(item => ({
+                        time: new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                        value: item.ph
+                    }));
+                    setPhHistory(formattedData.reverse());
+                }
+            };
+
+            // Suscribirse a cambios en tiempo real
             React.useEffect(() => {
-                // Inicializar el historial con las últimas 24 horas
-                const initialHistory = Array.from({length: 24}, (_, i) => ({
-                    time: new Date(Date.now() - (23-i) * 3600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                    value: 7.0
-                }));
-                setPhHistory(initialHistory);
+                const subscription = supabase
+                    .channel('ph_readings')
+                    .on('postgres_changes', { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'ph_readings' 
+                    }, payload => {
+                        const newPh = payload.new.ph;
+                        setPhValue(newPh);
+                        setLastUpdated(new Date(payload.new.timestamp).toLocaleTimeString());
+                        
+                        setPhHistory(prev => {
+                            const newHistory = [...prev.slice(1), {
+                                time: new Date(payload.new.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                                value: newPh
+                            }];
+                            return newHistory;
+                        });
+                    })
+                    .subscribe();
 
-                const generateRandomPh = () => {
-                    const newPh = (Math.random() * 14).toFixed(1);
-                    const parsedPh = parseFloat(newPh);
-                    setPhValue(parsedPh);
-                    
-                    // Actualizar historial
-                    setPhHistory(prev => {
-                        const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        const newHistory = [...prev.slice(1), { time: now, value: parsedPh }];
-                        return newHistory;
-                    });
-                    
-                    setLastUpdated(new Date().toLocaleTimeString());
+                // Cargar datos históricos iniciales
+                loadHistoricalData();
+
+                return () => {
+                    subscription.unsubscribe();
                 };
-
-                const intervalId = setInterval(generateRandomPh, 3000);
-                return () => clearInterval(intervalId);
             }, []);
 
             React.useEffect(() => {
