@@ -41,16 +41,31 @@
             }, []);
 
             const getPhStatus = (ph) => {
-                if (ph < 7) {
-                    return { status: 'Ácido', color: 'bg-red-500', text: 'text-red-500' };
-                } else if (ph === 7) {
-                    return { status: 'Neutro', color: 'bg-green-500', text: 'text-green-500' };
+                if (ph < 6) {
+                    return { 
+                        status: 'Muy Ácido', 
+                        color: 'bg-red-500', 
+                        text: 'text-red-500',
+                        alert: '¡Alerta! pH demasiado bajo'
+                    };
+                } else if (ph >= 6 && ph <= 9) {
+                    return { 
+                        status: 'Óptimo', 
+                        color: 'bg-green-500', 
+                        text: 'text-green-500',
+                        alert: null
+                    };
                 } else {
-                    return { status: 'Básico', color: 'bg-blue-500', text: 'text-blue-500' };
+                    return { 
+                        status: 'Muy Básico', 
+                        color: 'bg-red-500', 
+                        text: 'text-red-500',
+                        alert: '¡Alerta! pH demasiado alto'
+                    };
                 }
             };
 
-            const { status, color, text } = getPhStatus(phValue);
+            const { status, color, text, alert } = getPhStatus(phValue);
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-green-100 flex items-center justify-center p-4 font-sans">
@@ -59,29 +74,58 @@
                             Monitor de pH
                         </h1>
 
-                        <div className="relative w-full h-10 bg-gray-200 rounded-full overflow-hidden mb-10 shadow-inner">
-                            <div
-                                className={`absolute h-full transition-all duration-500 ease-in-out ${color}`}
-                                style={{ width: `${(phValue / 14) * 100}%` }}
-                            ></div>
-                            <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800">
-                                {phValue.toFixed(1)}
-                            </span>
+                        {/* Barra de pH con rangos */}
+                        <div className="relative w-full mb-10">
+                            {/* Escala de números */}
+                            <div className="flex justify-between mb-1 text-sm text-gray-600">
+                                <span>0</span>
+                                <span className="text-green-600 font-medium">6</span>
+                                <span className="text-green-600 font-medium">9</span>
+                                <span>14</span>
+                            </div>
+                            
+                            {/* Barra de progreso */}
+                            <div className="relative h-10 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                                {/* Zona óptima (6-9) */}
+                                <div className="absolute h-full bg-green-200/50"
+                                    style={{ left: '42.85%', width: '21.42%' }}>
+                                </div>
+                                {/* Indicador de pH actual */}
+                                <div
+                                    className={`absolute h-full w-2 transition-all duration-500 ease-in-out ${color}`}
+                                    style={{ left: `${(phValue / 14) * 100}%`, transform: 'translateX(-50%)' }}>
+                                </div>
+                                {/* Valor actual */}
+                                <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-800">
+                                    {phValue.toFixed(1)}
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="mb-10">
+                        <div className="mb-6">
                             <p className="text-7xl font-extrabold text-gray-900 mb-3 drop-shadow">
                                 {phValue.toFixed(1)}
                             </p>
-                            <p className={`text-3xl font-semibold ${text} drop-shadow-sm`}>
+                            <p className={`text-3xl font-semibold ${text} drop-shadow-sm mb-2`}>
                                 Estado: {status}
                             </p>
+                            {alert && (
+                                <p className="text-red-500 font-medium animate-pulse">
+                                    {alert}
+                                </p>
+                            )}
                         </div>
 
                         <div className="text-gray-600 text-base mb-2">
                             <p>Última actualización: <span className="font-mono">{lastUpdated}</span></p>
                         </div>
-                        <p className="mt-2 text-xs text-gray-400 italic">
+                        <div className="mt-4 text-sm text-gray-500">
+                            <p className="font-medium mb-1">Rangos de pH:</p>
+                            <p>• &lt; 6: Muy ácido (no recomendado)</p>
+                            <p>• 6-9: Rango óptimo</p>
+                            <p>• &gt; 9: Muy básico (no recomendado)</p>
+                        </div>
+                        <p className="mt-4 text-xs text-gray-400 italic">
                             *Valores simulados para demostración.
                         </p>
                     </div>
