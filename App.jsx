@@ -7,20 +7,22 @@ const App = () => {
   // State to hold the last update timestamp
   const [lastUpdated, setLastUpdated] = useState('');
 
-  // useEffect hook to simulate real-time pH updates
+  // useEffect hook para obtener el valor real de pH desde la API
   useEffect(() => {
-    // Function to generate a random pH value
-    const generateRandomPh = () => {
-      // Simulate pH values between 0 and 14
-      const newPh = (Math.random() * 14).toFixed(1);
-      setPhValue(parseFloat(newPh));
-      setLastUpdated(new Date().toLocaleTimeString());
+    const fetchPh = async () => {
+      try {
+        const response = await fetch('/api/ph-latest');
+        if (response.ok) {
+          const data = await response.json();
+          setPhValue(data.ph);
+          setLastUpdated(new Date(data.timestamp).toLocaleTimeString());
+        }
+      } catch (error) {
+        // Puedes mostrar un error si lo deseas
+      }
     };
-
-    // Set up an interval to update the pH value every 3 seconds
-    const intervalId = setInterval(generateRandomPh, 3000);
-
-    // Clean up the interval when the component unmounts
+    fetchPh();
+    const intervalId = setInterval(fetchPh, 3000);
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array means this effect runs once on mount
 
