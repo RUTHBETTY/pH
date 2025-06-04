@@ -1,9 +1,9 @@
 #include <ESP8266WiFi.h>      // Usa <WiFi.h> si es ESP32
 #include <ESP8266HTTPClient.h> // Usa <HTTPClient.h> si es ESP32
 
-const char* ssid = "TU_SSID";
-const char* password = "TU_PASSWORD";
-const char* serverUrl = "http://TU_DOMINIO_O_IP/api/ph-data"; // Cambia por tu endpoint real
+const char* ssid = "SEGOVIA3";
+const char* password = "76840574";
+const char* serverUrl = "https://p-h-iota.vercel.app/api/ph-data"; // Cambiado al dominio real
 
 const int phPin = A0; // Pin analógico donde está conectado el sensor de pH
 
